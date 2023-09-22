@@ -77,11 +77,11 @@ WSGI_APPLICATION = 'pcap_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django',
+        'NAME': 'mouha',
         'USER': 'postgres',
         'HOST': 'localhost',  # Adresse du serveur PostgreSQL
         'PORT': '5432',  # Port PostgreSQL par défaut
-        'PASSWORD': 'mouha',
+        'PASSWORD': 'pgadmin',
     }
 }
 

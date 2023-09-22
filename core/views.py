@@ -9,9 +9,11 @@ import re
 from datetime import datetime
 from decimal import Decimal
 from scapy.layers.inet import IP
+from pcapkit import extract
+
 
 class UploadAndAnalyzePCAPView(APIView):
-    max_data_list_size = 10  # Définissez la taille maximale de la liste
+    max_data_list_size = 999  # Définissez la taille maximale de la liste
     file_analyzed_packets = {}
     parser_classes = (MultiPartParser,)
 
@@ -45,11 +47,12 @@ class UploadAndAnalyzePCAPView(APIView):
         arrival_time_match = re.search(r'Arrival Time: (.*?)[\r\n]', hex_content)
         if arrival_time_match:
             arrival_time_str = arrival_time_match.group(1)
-            sip_info['arrival_time'] = datetime.strptime(arrival_time_str, '%b %d, %Y %H:%M:%S.%f').strftime('%Y-%m-%d %H:%M:%S')
+            sip_info['arrival_time'] = datetime.strptime(arrival_time_str, '%b %d, %Y %H:%M:%S.%f').strftime(
+                '%Y-%m-%d %H:%M:%S')
 
         if 'UDP' in packet and packet['UDP'].dport == 5060:
             try:
-                sip = packet['UDP']['Raw'].load.decode('utf-8')
+                sip = packet['UDP']['Raw'].load.decode()
 
                 sip_info['method'] = sip.split(' ')[0]
 
@@ -83,14 +86,24 @@ class UploadAndAnalyzePCAPView(APIView):
             if isinstance(value, Decimal):
                 sip_info[key] = float(value)
 
+        print(sip_info)
+
         return sip_info
 
     def post(self, request):
-        if 'pcap_file' not in request.FILES:
+        if not request.FILES:
             return Response({'error': 'No PCAP file provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        pcap_file = request.FILES['pcap_file']
+        print(request)
+        print('hello')
+
+        pcap_file = request.FILES['myFile']
         packets = rdpcap(pcap_file)
+        for packet in packets:
+            try:
+                print(packet['UDP']['Raw'].load.decode())
+            except Exception as e:
+                print(e)
 
         file_identifier = pcap_file.name
 
@@ -113,7 +126,8 @@ class UploadAndAnalyzePCAPView(APIView):
         # Stockez cette liste dans le dictionnaire global
         self.file_analyzed_packets[file_identifier] = data_list
 
-        return Response({'message': 'File uploaded and analyzed successfully.'}, status=status.HTTP_201_CREATED)
+        return Response(data_list, status=status.HTTP_201_CREATED)
+
 
 class AnalysisResultsAPI(APIView):
     def get(self, request):
