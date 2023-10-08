@@ -9,6 +9,8 @@ import re
 from datetime import datetime
 from decimal import Decimal
 from scapy.layers.inet import IP
+from django.contrib.auth.models import User
+
 from pcapkit import extract
 
 
@@ -140,3 +142,9 @@ class AnalysisResultsAPI(APIView):
             return Response(data_list, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'No data available.'}, status=status.HTTP_404_NOT_FOUND)
+
+class RegisterUser(APIView):
+    def post(self, request):
+        user = User.objects.create_user(request.name, request.email, request.password)
+        user.save()
+
