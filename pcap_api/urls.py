@@ -6,6 +6,5 @@ urlpatterns = [
     path('api/analysis/', AnalysisResultsAPI.as_view(), name='analysis-results'),
     path('/api/register', RegisterUser.as_view(), name='register'),
     path('admin', admin.site.urls),
-
 ]
 
